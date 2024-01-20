@@ -13,7 +13,7 @@ func main() {
 		fmt.Println("Example: go-ddrtemplateeditor -item hammer,sword -src template1.png -dst template2.png -out output.png")
 		flag.PrintDefaults()
 	}
-	itemTypes := flag.String("item", "", "Use -item <hammer|sword|shotgun|pistol|pistol_crshr|pistol_bllt> to set the comma separated items to replace")
+	itemTypes := flag.String("item", "", "Use -item <hammer|sword|shotgun|shotgun_crshr|pistol|pistol_crshr|pistol_bllt> to set the comma separated items to replace")
 	srcFile := flag.String("src", "", "Use -src <path_to_template_png> to set the source template file")
 	dstFile := flag.String("dst", "", "Use -dst <path_to_template_png> to set the destination template file")
 	outputfile := flag.String("out", "output/new_template.png", "Use -out <path_to_output_png> to set the output file")
