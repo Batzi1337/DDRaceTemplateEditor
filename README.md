@@ -17,7 +17,7 @@ Since it is (for now) just a simple CLI tool, the usage is pretty easy.
 First, open a terminal navigate to the source folder and build the executable:
 
 ```bash
-cd cmd/go-ddrtemplateeditor
+cd <your-path>/DDRaceTemplateEditor/cmd/go-ddrtemplateeditor
 go build
 ```
 
