@@ -14,7 +14,7 @@ The go-ddrtemplateeditor is a simple CLI tool to exchange items from one templat
 ### Usage
 
 Since it is (for now) just a simple CLI tool, the usage is pretty easy. 
-First, navigate to the source folder and build the executable:
+First, open a terminal navigate to the source folder and build the executable:
 
 ```bash
 cd cmd/go-ddrtemplateeditor
@@ -27,7 +27,7 @@ Now run the tool like follows:
 go-ddrtemplateeditor -item hammer,sword -src template1.png -dst template2.png -out output.png
 ```
 
-The `-item` parameter defines, which items will be extracted from the source template (`src`) and pasted into the destination template (`-dst`). The result of the exchange will be saved at the location defined with the `-out` parameter.
+The `-item` parameter defines, which items will be extracted from the source template (`src`) and pasted into the destination template (`-dst`). The result of the exchange will be saved as the file defined with the `-out` parameter.
 
 To list all available items, just use `./go-ddrtemplateeditor -h`.
 

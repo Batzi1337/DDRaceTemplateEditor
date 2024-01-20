@@ -26,15 +26,15 @@ func (h *Item) StartPoint() *image.Point {
 }
 
 func NewHammer(t *Template) *Item {
-	hammer := &Item{
+	hmmr := &Item{
 		startPoint:  image.Point{64, 32},
 		width:       128,
 		height:      96,
 		srcTemplate: t,
 	}
-	SetImage(hammer)
+	SetImage(hmmr)
 
-	return hammer
+	return hmmr
 }
 
 func NewShotgun(t *Template) *Item {

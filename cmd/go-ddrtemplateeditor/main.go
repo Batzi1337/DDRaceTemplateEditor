@@ -37,22 +37,18 @@ func main() {
 
 		switch itemType {
 		case "hammer":
-			// Create a new hammer and add it to the list of items
 			hammer := NewHammer(template1)
 			items = append(items, hammer)
 			fmt.Println("Replacing hammer")
 		case "sword":
-			// Create a new sword and add it to the list of items
 			sword := NewSword(template1)
 			items = append(items, sword)
 			fmt.Println("Replacing sword")
 		case "shotgun":
-			// Create a new shotgun and add it to the list of items
 			shotgun := NewShotgun(template1)
 			items = append(items, shotgun)
 			fmt.Println("Replacing shotgun")
 		case "shotgun_crshr":
-			// Create a new shotgun crosshair and add it to the list of items
 			shotgunCrshr := NewShotgunCrosshair(template1)
 			items = append(items, shotgunCrshr)
 			fmt.Println("Replacing shotgun crosshair")
