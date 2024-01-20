@@ -4,7 +4,7 @@ Welcome to DDRaceTemplateEditor! This repository is a template editor for DDRace
 
 ## Using go-ddrtemplateeditor
 
-The go-ddrtemplateeditor is a simple CLI tool to exchange items from on template with an other.
+The go-ddrtemplateeditor is a simple CLI tool to exchange items from one template with an other.
 
 ### Prerequisites
 
