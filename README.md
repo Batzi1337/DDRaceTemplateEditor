@@ -6,7 +6,7 @@ Welcome to DDRaceTemplateEditor! This repository is a template editor for DDRace
 
 The go-ddrtemplateeditor is a simple CLI tool to exchange items from on template with an other.
 
-### Prequesites
+### Prerequisites
 
 1. Install [Go](https://go.dev/doc/install)
 2. Clone the repository: `git clone https://github.com/your-username/DDRaceTemplateEditor.git`
