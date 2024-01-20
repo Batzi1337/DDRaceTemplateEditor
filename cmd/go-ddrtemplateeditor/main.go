@@ -32,54 +32,13 @@ func main() {
 		return
 	}
 
-	items := []*Item{}
-	for _, itemType := range strings.Split(*itemTypes, ",") {
-
-		switch itemType {
-		case "hammer":
-			hammer := NewHammer(template1)
-			items = append(items, hammer)
-			fmt.Println("Replacing hammer")
-		case "sword":
-			sword := NewSword(template1)
-			items = append(items, sword)
-			fmt.Println("Replacing sword")
-		case "shotgun":
-			shotgun := NewShotgun(template1)
-			items = append(items, shotgun)
-			fmt.Println("Replacing shotgun")
-		case "shotgun_crshr":
-			shotgunCrshr := NewShotgunCrosshair(template1)
-			items = append(items, shotgunCrshr)
-			fmt.Println("Replacing shotgun crosshair")
-		case "shotgun_bllt":
-			shotgunBllt := NewShotgunBullet(template1)
-			items = append(items, shotgunBllt)
-			fmt.Println("Replacing shotgun bullet")
-		case "pistol":
-			pistol := NewPistol(template1)
-			items = append(items, pistol)
-			fmt.Println("Replacing pistol")
-		case "pistol_crshr":
-			pistolCrshr := NewPistolCrosshair(template1)
-			items = append(items, pistolCrshr)
-			fmt.Println("Replacing pistol crosshair")
-		case "pistol_bllt":
-			pistolBllt := NewPistolBullet(template1)
-			items = append(items, pistolBllt)
-			fmt.Println("Replacing pistol bullet")
-		default:
-			fmt.Println("Error: unknown item type '" + itemType + "'")
-			return
-		}
+	items := createItems(template1, *itemTypes)
+	if items == nil {
+		return
 	}
 
-	// Replace the items
-	for _, item := range items {
-		template2.ReplaceItem(item)
-	}
+	replaceItems(template2, items)
 
-	// Save the result
 	err = template2.Save(*outputfile)
 	if err != nil {
 		fmt.Println("Error saving image:", err)
@@ -87,4 +46,47 @@ func main() {
 	}
 
 	fmt.Println("Operation completed successfully. Result saved to " + *outputfile)
+}
+
+func createItems(template *Template, itemTypes string) []*Item {
+	items := []*Item{}
+	for _, itemType := range strings.Split(itemTypes, ",") {
+		item := createItem(template, itemType)
+		if item == nil {
+			return nil
+		}
+		items = append(items, item)
+		fmt.Println("Replacing", itemType)
+	}
+	return items
+}
+
+func createItem(template *Template, itemType string) *Item {
+	switch itemType {
+	case "hammer":
+		return NewHammer(template)
+	case "sword":
+		return NewSword(template)
+	case "shotgun":
+		return NewShotgun(template)
+	case "shotgun_crshr":
+		return NewShotgunCrosshair(template)
+	case "shotgun_bllt":
+		return NewShotgunBullet(template)
+	case "pistol":
+		return NewPistol(template)
+	case "pistol_crshr":
+		return NewPistolCrosshair(template)
+	case "pistol_bllt":
+		return NewPistolBullet(template)
+	default:
+		fmt.Println("Error: unknown item type '" + itemType + "'")
+		return nil
+	}
+}
+
+func replaceItems(template *Template, items []*Item) {
+	for _, item := range items {
+		template.ReplaceItem(item)
+	}
 }
