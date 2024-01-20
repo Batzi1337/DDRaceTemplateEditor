@@ -62,6 +62,42 @@ func NewShotgunCrosshair(t *Template) *Item {
 	return crshr
 }
 
+func NewPistol(t *Template) *Item {
+	pstl := &Item{
+		startPoint:  image.Point{64, 128},
+		width:       128,
+		height:      64,
+		srcTemplate: t,
+	}
+	SetImage(pstl)
+
+	return pstl
+}
+
+func NewPistolCrosshair(t *Template) *Item {
+	crshr := &Item{
+		startPoint:  image.Point{0, 128},
+		width:       64,
+		height:      64,
+		srcTemplate: t,
+	}
+	SetImage(crshr)
+
+	return crshr
+}
+
+func NewPistolBullet(t *Template) *Item {
+	bllt := &Item{
+		startPoint:  image.Point{192, 128},
+		width:       64,
+		height:      64,
+		srcTemplate: t,
+	}
+	SetImage(bllt)
+
+	return bllt
+}
+
 func NewSword(t *Template) *Item {
 	sword := &Item{
 		startPoint:  image.Point{64, 320},
