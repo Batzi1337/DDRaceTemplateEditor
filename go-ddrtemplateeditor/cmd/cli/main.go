@@ -23,8 +23,6 @@ func main() {
 	outputfile := flag.String("out", "new_template.png", "Use -out <path_to_output_png> to set the output file")
 	flag.Parse()
 
-	// Load images
-
 	template1, err := loadTemplateFromFile(*srcFile)
 	if err != nil {
 		fmt.Println("Error loading image1:", err)
