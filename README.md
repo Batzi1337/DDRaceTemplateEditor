@@ -17,14 +17,14 @@ Since it is (for now) just a simple CLI tool, the usage is pretty easy.
 First, open a terminal navigate to the source folder and build the executable:
 
 ```bash
-cd <your-path>/DDRaceTemplateEditor/cmd/go-ddrtemplateeditor
-go build
+cd <your-path>/DDRaceTemplateEditor/go-ddrtemplateeditor/cmd/cli
+go build -o go-ddrtemplateeditor
 ```
 
 Now run the tool like follows:
 
 ```bash
-go-ddrtemplateeditor -item hammer,sword -src template1.png -dst template2.png -out output.png
+./go-ddrtemplateeditor -item hammer,sword -src template1.png -dst template2.png -out output.png
 ```
 
 The `-item` parameter defines, which items will be extracted from the source template (`src`) and pasted into the destination template (`-dst`). The result of the exchange will be saved as the file defined with the `-out` parameter.
