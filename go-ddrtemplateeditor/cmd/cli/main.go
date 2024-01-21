@@ -3,6 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"image"
+	"image/png"
+	"models"
+	"os"
 	"strings"
 )
 
@@ -20,13 +24,14 @@ func main() {
 	flag.Parse()
 
 	// Load images
-	template1, err := NewTemplate(*srcFile)
+
+	template1, err := loadTemplateFromFile(*srcFile)
 	if err != nil {
 		fmt.Println("Error loading image1:", err)
 		return
 	}
 
-	template2, err := NewTemplate(*dstFile)
+	template2, err := loadTemplateFromFile(*dstFile)
 	if err != nil {
 		fmt.Println("Error loading image2:", err)
 		return
@@ -39,7 +44,7 @@ func main() {
 
 	replaceItems(template2, items)
 
-	err = template2.Save(*outputfile)
+	err = saveTemplateToFile(template2, *outputfile)
 	if err != nil {
 		fmt.Println("Error saving image:", err)
 		return
@@ -48,8 +53,8 @@ func main() {
 	fmt.Println("Operation completed successfully. Result saved to " + *outputfile)
 }
 
-func createItems(template *Template, itemTypes string) []*Item {
-	items := []*Item{}
+func createItems(template *models.Template, itemTypes string) []*models.Item {
+	items := []*models.Item{}
 	for _, itemType := range strings.Split(itemTypes, ",") {
 		item := createItem(template, itemType)
 		if item == nil {
@@ -61,32 +66,57 @@ func createItems(template *Template, itemTypes string) []*Item {
 	return items
 }
 
-func createItem(template *Template, itemType string) *Item {
+func createItem(template *models.Template, itemType string) *models.Item {
 	switch itemType {
 	case "hammer":
-		return NewHammer(template)
+		return models.Hammer(template)
 	case "sword":
-		return NewSword(template)
+		return models.Sword(template)
 	case "shotgun":
-		return NewShotgun(template)
+		return models.Shotgun(template)
 	case "shotgun_crshr":
-		return NewShotgunCrosshair(template)
+		return models.ShotgunCrosshair(template)
 	case "shotgun_bllt":
-		return NewShotgunBullet(template)
+		return models.ShotgunBullet(template)
 	case "pistol":
-		return NewPistol(template)
+		return models.Pistol(template)
 	case "pistol_crshr":
-		return NewPistolCrosshair(template)
+		return models.PistolCrosshair(template)
 	case "pistol_bllt":
-		return NewPistolBullet(template)
+		return models.PistolBullet(template)
 	default:
 		fmt.Println("Error: unknown item type '" + itemType + "'")
 		return nil
 	}
 }
 
-func replaceItems(template *Template, items []*Item) {
+func replaceItems(template *models.Template, items []*models.Item) {
 	for _, item := range items {
 		template.ReplaceItem(item)
 	}
+}
+
+func loadTemplateFromFile(path string) (*models.Template, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.Template{Img: img}, nil
+}
+
+func saveTemplateToFile(template *models.Template, path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	return png.Encode(file, template.Img)
 }
