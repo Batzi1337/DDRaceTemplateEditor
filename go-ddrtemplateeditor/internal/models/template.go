@@ -6,7 +6,9 @@ import (
 )
 
 type Template struct {
-	Img image.Image
+	ID   int
+	Name string
+	Img  image.Image
 }
 
 func (t *Template) ReplaceItem(replacement *Item) {
