@@ -40,7 +40,7 @@ func main() {
 		return
 	}
 
-	template2 = replaceItems(template2, items)
+	template2 = assets.ReplaceItems(template2, items...)
 
 	err = saveTemplateToFile(template2, *outputfile)
 	if err != nil {
@@ -67,34 +67,73 @@ func createItems(template assets.Template, itemTypes string) []assets.Item {
 func createItem(template assets.Template, itemType string) assets.Item {
 	switch itemType {
 	case "hammer":
-		return assets.Hammer(template)
+		return hammer(template)
 	case "sword":
-		return assets.Sword(template)
+		return sword(template)
 	case "shotgun":
-		return assets.Shotgun(template)
+		return shotgun(template)
 	case "shotgun_crshr":
-		return assets.ShotgunCrosshair(template)
+		return shotgunCrosshair(template)
 	case "shotgun_bllt":
-		return assets.ShotgunBullet(template)
+		return shotgunBullet(template)
 	case "pistol":
-		return assets.Pistol(template)
+		return pistol(template)
 	case "pistol_crshr":
-		return assets.PistolCrosshair(template)
+		return pistolCrosshair(template)
 	case "pistol_bllt":
-		return assets.PistolBullet(template)
+		return pistolBullet(template)
 	default:
 		fmt.Println("Error: unknown item type '" + itemType + "'")
 		return nil
 	}
 }
 
-func replaceItems(template assets.Template, items []assets.Item) (result assets.Template) {
-	result = template
-	for _, item := range items {
-		result = assets.ReplaceItem(result, item)
-	}
+func hammer(t assets.Template) assets.Item {
+	x, y := 64, 32
+	width, height := 128, 96
+	return assets.NewItem(x, y, width, height, t)
+}
 
-	return
+func shotgun(t assets.Template) assets.Item {
+	x, y := 64, 192
+	width, height := 256, 64
+	return assets.NewItem(x, y, width, height, t)
+}
+
+func shotgunCrosshair(t assets.Template) assets.Item {
+	x, y := 0, 192
+	width, height := 64, 64
+	return assets.NewItem(x, y, width, height, t)
+}
+
+func shotgunBullet(t assets.Template) assets.Item {
+	x, y := 320, 192
+	width, height := 64, 64
+	return assets.NewItem(x, y, width, height, t)
+}
+
+func sword(t assets.Template) assets.Item {
+	x, y := 64, 320
+	width, height := 256, 64
+	return assets.NewItem(x, y, width, height, t)
+}
+
+func pistol(t assets.Template) assets.Item {
+	x, y := 64, 128
+	width, height := 128, 64
+	return assets.NewItem(x, y, width, height, t)
+}
+
+func pistolCrosshair(t assets.Template) assets.Item {
+	x, y := 0, 128
+	width, height := 64, 64
+	return assets.NewItem(x, y, width, height, t)
+}
+
+func pistolBullet(t assets.Template) assets.Item {
+	x, y := 192, 128
+	width, height := 64, 64
+	return assets.NewItem(x, y, width, height, t)
 }
 
 func loadTemplateFromFile(path string) (assets.Template, error) {

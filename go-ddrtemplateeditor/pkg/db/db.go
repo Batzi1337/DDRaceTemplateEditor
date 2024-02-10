@@ -1,131 +1,127 @@
 package db
 
 import (
-	"bytes"
-	"database/sql"
-	"image"
-	"log"
-	"models"
-
-	_ "github.com/mattn/go-sqlite3"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
-func getDb() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "./ddrtemplateeditor.db")
+type Template struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+	Img  []byte `json:"-"`
+}
+
+type Item struct {
+	ID            int    `json:"id"`
+	Type          string `json:"type"`
+	X, Y          int    `json:"-"`
+	Width, Height int    `json:"-"`
+}
+
+type DB struct {
+	db *gorm.DB
+}
+
+func NewDB() (*DB, error) {
+	db, err := gorm.Open(sqlite.Open("ddrtemplateeditor.db"), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
-	return db, nil
+
+	err = db.AutoMigrate(&Template{}, &Item{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &DB{db: db}, nil
 }
 
-func Create() {
-	db, err := getDb()
+func (d *DB) Close() error {
+	sqlDB, err := d.db.DB()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	defer db.Close()
 
-	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS templates (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			name TEXT NOT NULL,
-			image BLOB NOT NULL
-		)`)
+	err = sqlDB.Close()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
-func Insert(name string, image []byte) (int, error) {
-	db, err := getDb()
+func (d *DB) CreateTemplate(template *Template) (int, error) {
+	err := d.db.Create(template).Error
 	if err != nil {
 		return 0, err
 	}
-	defer db.Close()
 
-	r := db.QueryRow(`INSERT INTO templates (name, image) VALUES (?, ?) RETURNING id`, name, image)
-
-	var id int
-	err = r.Scan(&id)
-	if err != nil {
-		return 0, err
-	}
-
-	return id, nil
+	return template.ID, nil
 }
 
-func DropDb() {
-	db, err := getDb()
+func (d *DB) CreateItem(item *Item) error {
+	err := d.db.Create(item).Error
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	defer db.Close()
 
-	_, err = db.Exec(`DROP DATABASE templates`)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return nil
 }
 
-func QueryTemplates() ([]*models.Template, error) {
-	db, err := getDb()
+func (d *DB) DropDb() error {
+	err := d.db.Migrator().DropTable(&Template{}, &Item{})
 	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	rows, err := db.Query("SELECT id, name, image FROM templates")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	result := []*models.Template{}
-	for rows.Next() {
-		var id int
-		var name string
-		var i []byte
-		err := rows.Scan(&id, &name, &i)
-		if err != nil {
-			return nil, err
-		}
-
-		img, _, err := image.Decode(bytes.NewReader(i))
-		if err != nil {
-			return nil, err
-		}
-
-		result = append(result, &models.Template{ID: id, Name: name, Img: img})
+		return err
 	}
 
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return nil
 }
 
-func QueryTemplate(id int) (*models.Template, error) {
-	db, err := getDb()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	row := db.QueryRow("SELECT id, name, image FROM templates WHERE id = ?", id)
-	template := models.Template{}
-	b := []byte{}
-	err = row.Scan(&template.ID, &template.Name, &b)
+func (d *DB) QueryTemplates() ([]*Template, error) {
+	var templates []*Template
+	err := d.db.Find(&templates).Error
 	if err != nil {
 		return nil, err
 	}
 
-	img, _, err := image.Decode(bytes.NewReader(b))
+	return templates, nil
+}
+
+func (d *DB) QueryTemplate(id int) (*Template, error) {
+	var template Template
+	err := d.db.First(&template, id).Error
 	if err != nil {
 		return nil, err
 	}
-
-	template.Img = img
 
 	return &template, nil
+}
+
+func (d *DB) UpdateTemplateImage(id int, image []byte) error {
+	err := d.db.Model(&Template{}).Where("id = ?", id).Update("Img", image).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *DB) QueryItems() ([]*Item, error) {
+	var items []*Item
+	err := d.db.Find(&items).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
+func (d *DB) QueryItem(id int) (*Item, error) {
+	var item Item
+	err := d.db.First(&item, id).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &item, nil
 }

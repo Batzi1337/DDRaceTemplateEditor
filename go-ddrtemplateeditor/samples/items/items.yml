@@ -1,0 +1,47 @@
+- type: Sword
+  x: 64
+  y: 320
+  width: 256
+  height: 64
+
+- type: Hammer
+  x: 64
+  y: 32
+  width: 128
+  height: 96
+
+- type: Shotgun
+  x: 64
+  y: 192
+  width: 256
+  height: 64
+
+- type: Shotgun Crosshair
+  x: 0
+  y: 192
+  width: 64
+  height: 64
+
+- type: Shotgun Bullet
+  x: 320
+  y: 192
+  width: 64
+  height: 64
+
+- type: Pistol
+  x: 64
+  y: 128
+  width: 128
+  height: 64
+
+- type: Pistol Crosshair
+  x: 0
+  y: 128
+  width: 64
+  height: 64
+
+- type: Pistol Bullet
+  x: 192
+  y: 128
+  width: 64
+  height: 64

@@ -3,58 +3,80 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"go-ddrtemplateeditor/internal/assets"
 	"go-ddrtemplateeditor/pkg/db"
 	"image"
 	"image/png"
 	"log"
-	"models"
 	"net/http"
 	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"gopkg.in/yaml.v2"
 )
 
-type templateDto struct {
-	ID    int              `json:"id"`
-	Name  string           `json:"name"`
-	Links []hypermediaLink `json:"links"`
-}
-
-type hypermediaLink struct {
-	Rel  string `json:"rel"`
-	Href string `json:"href"`
+type replacementDto struct {
+	TemplateID int `json:"templateId"`
+	Items      []struct {
+		ID int `json:"id"`
+	} `json:"items"`
 }
 
 var templateFolder = "../../samples/templates"
 
+var itemsSetFile = "../../samples/items/items.yml"
+
+var dbInstance *db.DB
+
 func main() {
 	router := mux.NewRouter()
 
-	db.Create()
-	defer db.DropDb()
-
-	errChan := make(chan error)
-	go func() {
-		errChan <- loadTemplates()
-	}()
-
-	// Define API endpoints
-	router.HandleFunc("/templates", getTemplates).Methods("GET")
-	router.HandleFunc("/templates/{id}", getTemplate).Methods("GET")
-	router.HandleFunc("/templates/{id}/image", getTemplateImage).Methods("GET")
-	// router.HandleFunc("/templates", createTemplate).Methods("POST")
-	// router.HandleFunc("/templates/{id}", updateTemplate).Methods("PUT")
-	// router.HandleFunc("/templates/{id}", deleteTemplate).Methods("DELETE")
-	router.Handle("/", http.FileServer(http.Dir(templateFolder)))
-
-	// Wait for templates to load
-	err := <-errChan
+	d, err := db.NewDB()
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer d.DropDb()
+	dbInstance = d
+
+	err = loadTemplates()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = loadItems()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Define API endpoints
+	router.HandleFunc("/api/templates", getTemplates).Methods("GET")
+	router.HandleFunc("/api/templates/{id}", getTemplate).Methods("GET")
+	router.HandleFunc("/api/templates/{id}/image", getTemplateImage).Methods("GET")
+	router.HandleFunc("/api/templates/{id}/replace", updateTemplate).Methods("PUT")
+	router.HandleFunc("/api/items", getItems).Methods("GET")
+
 	log.Fatal(http.ListenAndServe(":1337", router))
+}
+
+func loadItems() error {
+	file, err := os.Open(itemsSetFile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	var items []db.Item
+	err = yaml.NewDecoder(file).Decode(&items)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range items {
+		dbInstance.CreateItem(&item)
+	}
+
+	return nil
 }
 
 func loadTemplates() error {
@@ -85,32 +107,21 @@ func loadTemplates() error {
 			return err
 		}
 
-		db.Insert(file.Name(), buffer.Bytes())
+		dbInstance.CreateTemplate(&db.Template{Name: file.Name(), Img: buffer.Bytes()})
 	}
 	return nil
 }
 
-func mapToDto(t ...*models.Template) []templateDto {
-	r := []templateDto{}
-	for _, t := range t {
-		r = append(r, templateDto{ID: t.ID, Name: t.Name, Links: []hypermediaLink{
-			{Rel: "self", Href: fmt.Sprintf("/templates/%d", t.ID)},
-			{Rel: "self", Href: fmt.Sprintf("/templates/%d/image", t.ID)}}})
-	}
-
-	return r
-}
-
 func getTemplates(w http.ResponseWriter, r *http.Request) {
-	templates, err := db.QueryTemplates()
+	templates, err := dbInstance.QueryTemplates()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	rsp := mapToDto(templates...)
+	// rsp := mapToDto(templates...)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(rsp)
+	json.NewEncoder(w).Encode(templates)
 }
 
 func getTemplate(w http.ResponseWriter, r *http.Request) {
@@ -120,14 +131,12 @@ func getTemplate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	t, err := db.QueryTemplate(id)
+	t, err := dbInstance.QueryTemplate(id)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	rsp := mapToDto(t)
-
-	json.NewEncoder(w).Encode(rsp)
+	json.NewEncoder(w).Encode(t)
 }
 
 func getTemplateImage(w http.ResponseWriter, r *http.Request) {
@@ -136,64 +145,92 @@ func getTemplateImage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	t, err := db.QueryTemplate(id)
+	t, err := dbInstance.QueryTemplate(id)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	writeImage(w, &t.Img)
-
 	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Content-Length", strconv.Itoa(len(t.Img)))
+	if _, err := w.Write(t.Img); err != nil {
+		log.Println("unable to write image.")
+	}
 	json.NewEncoder(w).Encode(nil)
 }
 
-// func createTemplate(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
-// 	var template Template
-// 	_ = json.NewDecoder(r.Body).Decode(&template)
-// 	templates = append(templates, template)
-// 	json.NewEncoder(w).Encode(template)
-// }
-
-// func updateTemplate(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
-// 	params := mux.Vars(r)
-// 	for index, template := range templates {
-// 		if template.ID == params["id"] {
-// 			templates = append(templates[:index], templates[index+1:]...)
-// 			var updatedTemplate Template
-// 			_ = json.NewDecoder(r.Body).Decode(&updatedTemplate)
-// 			updatedTemplate.ID = params["id"]
-// 			templates = append(templates, updatedTemplate)
-// 			json.NewEncoder(w).Encode(updatedTemplate)
-// 			return
-// 		}
-// 	}
-// 	json.NewEncoder(w).Encode(nil)
-// }
-
-// func deleteTemplate(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
-// 	params := mux.Vars(r)
-// 	for index, template := range templates {
-// 		if template.ID == params["id"] {
-// 			templates = append(templates[:index], templates[index+1:]...)
-// 			break
-// 		}
-// 	}
-// 	json.NewEncoder(w).Encode(nil)
-// }
-
-func writeImage(w http.ResponseWriter, img *image.Image) {
-
-	buffer := new(bytes.Buffer)
-	if err := png.Encode(buffer, *img); err != nil {
-		log.Println("unable to encode image.")
+func updateTemplate(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	w.Header().Set("Content-Type", "image/png")
-	w.Header().Set("Content-Length", strconv.Itoa(len(buffer.Bytes())))
-	if _, err := w.Write(buffer.Bytes()); err != nil {
-		log.Println("unable to write image.")
+	t1, err := dbInstance.QueryTemplate(id)
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	var replacement replacementDto
+	_ = json.NewDecoder(r.Body).Decode(&replacement)
+	t2, err := dbInstance.QueryTemplate(replacement.TemplateID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Load the template images
+	dstT, err := assets.NewTemplate(bytes.NewReader(t1.Img))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	srcT, err := assets.NewTemplate(bytes.NewReader(t2.Img))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Load the items
+	items := []assets.Item{}
+	for _, item := range replacement.Items {
+		i, err := dbInstance.QueryItem(item.ID)
+		if err != nil {
+			log.Fatal(err)
+		}
+		item := assets.NewItem(i.X, i.Y, i.Width, i.Height, srcT)
+		items = append(items, item)
+	}
+
+	// Replace the items
+	dstT = replaceItems(dstT, items)
+
+	// Save the new template
+	var buffer bytes.Buffer
+	err = png.Encode(&buffer, dstT)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = dbInstance.UpdateTemplateImage(id, buffer.Bytes())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	json.NewEncoder(w).Encode(nil)
+}
+
+func getItems(w http.ResponseWriter, r *http.Request) {
+	items, err := dbInstance.QueryItems()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(items)
+}
+
+func replaceItems(template assets.Template, items []assets.Item) (result assets.Template) {
+	result = template
+	for _, item := range items {
+		result = assets.ReplaceItem(result, item)
+	}
+
+	return
 }
