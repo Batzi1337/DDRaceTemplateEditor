@@ -19,7 +19,24 @@ func NewTemplate(r io.Reader) (Template, error) {
 	return Template(img), nil
 }
 
-func ReplaceItem(src Template, replacement Item) Template {
+func NewItem(x, y, width, height int, src Template) Item {
+	rect := image.Rect(x, y, x+width, y+height)
+	subImage := image.NewRGBA64(rect)
+	draw.Draw(subImage, subImage.Bounds(), src, image.Point{x, y}, draw.Src)
+
+	return subImage
+}
+
+func ReplaceItems(template Template, items ...Item) (result Template) {
+	result = template
+	for _, item := range items {
+		result = replaceItem(result, item)
+	}
+
+	return
+}
+
+func replaceItem(src Template, replacement Item) Template {
 	rect := replacement.Bounds()
 	dstImage := image.NewRGBA(src.Bounds())
 	draw.Draw(dstImage, dstImage.Bounds(), src, image.Point{}, draw.Src)
@@ -31,21 +48,4 @@ func ReplaceItem(src Template, replacement Item) Template {
 	}
 
 	return dstImage
-}
-
-func ReplaceItems(template Template, items ...Item) (result Template) {
-	result = template
-	for _, item := range items {
-		result = ReplaceItem(result, item)
-	}
-
-	return
-}
-
-func NewItem(x, y, width, height int, src Template) Item {
-	rect := image.Rect(x, y, x+width, y+height)
-	subImage := image.NewRGBA64(rect)
-	draw.Draw(subImage, subImage.Bounds(), src, image.Point{x, y}, draw.Src)
-
-	return subImage
 }

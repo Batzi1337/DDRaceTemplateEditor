@@ -10,14 +10,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestReplaceItem(t *testing.T) {
+func TestReplaceItems(t *testing.T) {
 	srcImage := getImage("../../samples/templates/purple_haze.png")
 	replacementImage := getImage("../../samples/items/item1.png")
 
 	src := Template(srcImage)
 	replacement := Item(replacementImage)
 
-	result := ReplaceItem(src, replacement)
+	result := ReplaceItems(src, replacement)
 
 	// Verify that the replaced item is present in the result
 	assert.True(t, isItemPresent(result, replacement))
