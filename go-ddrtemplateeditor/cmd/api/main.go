@@ -118,8 +118,6 @@ func getTemplates(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	// rsp := mapToDto(templates...)
-
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(templates)
 }
@@ -199,7 +197,7 @@ func updateTemplate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Replace the items
-	dstT = replaceItems(dstT, items)
+	dstT = assets.ReplaceItems(dstT, items...)
 
 	// Save the new template
 	var buffer bytes.Buffer
@@ -224,13 +222,4 @@ func getItems(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(items)
-}
-
-func replaceItems(template assets.Template, items []assets.Item) (result assets.Template) {
-	result = template
-	for _, item := range items {
-		result = assets.ReplaceItem(result, item)
-	}
-
-	return
 }
