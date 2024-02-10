@@ -1,9 +1,9 @@
 package main
 
 import (
-	"assets"
 	"flag"
 	"fmt"
+	"go-ddrtemplateeditor/internal/assets"
 	"image"
 	"image/png"
 	"os"
