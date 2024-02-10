@@ -1,11 +1,11 @@
 package main
 
 import (
+	"assets"
 	"flag"
 	"fmt"
 	"image"
 	"image/png"
-	"models"
 	"os"
 	"strings"
 )
@@ -40,7 +40,7 @@ func main() {
 		return
 	}
 
-	replaceItems(template2, items)
+	template2 = replaceItems(template2, items)
 
 	err = saveTemplateToFile(template2, *outputfile)
 	if err != nil {
@@ -51,8 +51,8 @@ func main() {
 	fmt.Println("Operation completed successfully. Result saved to " + *outputfile)
 }
 
-func createItems(template *models.Template, itemTypes string) []*models.Item {
-	items := []*models.Item{}
+func createItems(template assets.Template, itemTypes string) []assets.Item {
+	items := []assets.Item{}
 	for _, itemType := range strings.Split(itemTypes, ",") {
 		item := createItem(template, itemType)
 		if item == nil {
@@ -64,37 +64,40 @@ func createItems(template *models.Template, itemTypes string) []*models.Item {
 	return items
 }
 
-func createItem(template *models.Template, itemType string) *models.Item {
+func createItem(template assets.Template, itemType string) assets.Item {
 	switch itemType {
 	case "hammer":
-		return models.Hammer(template)
+		return assets.Hammer(template)
 	case "sword":
-		return models.Sword(template)
+		return assets.Sword(template)
 	case "shotgun":
-		return models.Shotgun(template)
+		return assets.Shotgun(template)
 	case "shotgun_crshr":
-		return models.ShotgunCrosshair(template)
+		return assets.ShotgunCrosshair(template)
 	case "shotgun_bllt":
-		return models.ShotgunBullet(template)
+		return assets.ShotgunBullet(template)
 	case "pistol":
-		return models.Pistol(template)
+		return assets.Pistol(template)
 	case "pistol_crshr":
-		return models.PistolCrosshair(template)
+		return assets.PistolCrosshair(template)
 	case "pistol_bllt":
-		return models.PistolBullet(template)
+		return assets.PistolBullet(template)
 	default:
 		fmt.Println("Error: unknown item type '" + itemType + "'")
 		return nil
 	}
 }
 
-func replaceItems(template *models.Template, items []*models.Item) {
+func replaceItems(template assets.Template, items []assets.Item) (result assets.Template) {
+	result = template
 	for _, item := range items {
-		template.ReplaceItem(item)
+		result = assets.ReplaceItem(result, item)
 	}
+
+	return
 }
 
-func loadTemplateFromFile(path string) (*models.Template, error) {
+func loadTemplateFromFile(path string) (assets.Template, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -106,15 +109,15 @@ func loadTemplateFromFile(path string) (*models.Template, error) {
 		return nil, err
 	}
 
-	return &models.Template{Img: img}, nil
+	return assets.Template(img), nil
 }
 
-func saveTemplateToFile(template *models.Template, path string) error {
+func saveTemplateToFile(template assets.Template, path string) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	return png.Encode(file, template.Img)
+	return png.Encode(file, template)
 }
