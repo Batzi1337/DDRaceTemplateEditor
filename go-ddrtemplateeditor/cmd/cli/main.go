@@ -40,7 +40,7 @@ func main() {
 		return
 	}
 
-	template2 = assets.ReplaceItems(template2, items...)
+	template2.ReplaceItems(items...)
 
 	err = saveTemplateToFile(template2, *outputfile)
 	if err != nil {
@@ -51,8 +51,8 @@ func main() {
 	fmt.Println("Operation completed successfully. Result saved to " + *outputfile)
 }
 
-func createItems(template assets.Template, itemTypes string) []assets.Item {
-	items := []assets.Item{}
+func createItems(template *assets.Template, itemTypes string) []*assets.Item {
+	items := []*assets.Item{}
 	for _, itemType := range strings.Split(itemTypes, ",") {
 		item := createItem(template, itemType)
 		if item == nil {
@@ -64,7 +64,7 @@ func createItems(template assets.Template, itemTypes string) []assets.Item {
 	return items
 }
 
-func createItem(template assets.Template, itemType string) assets.Item {
+func createItem(template *assets.Template, itemType string) *assets.Item {
 	switch itemType {
 	case "hammer":
 		return hammer(template)
@@ -88,55 +88,55 @@ func createItem(template assets.Template, itemType string) assets.Item {
 	}
 }
 
-func hammer(t assets.Template) assets.Item {
+func hammer(t *assets.Template) *assets.Item {
 	x, y := 64, 32
 	width, height := 128, 96
-	return assets.NewItem(x, y, width, height, t)
+	return t.NewItem(x, y, width, height)
 }
 
-func shotgun(t assets.Template) assets.Item {
+func shotgun(t *assets.Template) *assets.Item {
 	x, y := 64, 192
 	width, height := 256, 64
-	return assets.NewItem(x, y, width, height, t)
+	return t.NewItem(x, y, width, height)
 }
 
-func shotgunCrosshair(t assets.Template) assets.Item {
+func shotgunCrosshair(t *assets.Template) *assets.Item {
 	x, y := 0, 192
 	width, height := 64, 64
-	return assets.NewItem(x, y, width, height, t)
+	return t.NewItem(x, y, width, height)
 }
 
-func shotgunBullet(t assets.Template) assets.Item {
+func shotgunBullet(t *assets.Template) *assets.Item {
 	x, y := 320, 192
 	width, height := 64, 64
-	return assets.NewItem(x, y, width, height, t)
+	return t.NewItem(x, y, width, height)
 }
 
-func sword(t assets.Template) assets.Item {
+func sword(t *assets.Template) *assets.Item {
 	x, y := 64, 320
 	width, height := 256, 64
-	return assets.NewItem(x, y, width, height, t)
+	return t.NewItem(x, y, width, height)
 }
 
-func pistol(t assets.Template) assets.Item {
+func pistol(t *assets.Template) *assets.Item {
 	x, y := 64, 128
 	width, height := 128, 64
-	return assets.NewItem(x, y, width, height, t)
+	return t.NewItem(x, y, width, height)
 }
 
-func pistolCrosshair(t assets.Template) assets.Item {
+func pistolCrosshair(t *assets.Template) *assets.Item {
 	x, y := 0, 128
 	width, height := 64, 64
-	return assets.NewItem(x, y, width, height, t)
+	return t.NewItem(x, y, width, height)
 }
 
-func pistolBullet(t assets.Template) assets.Item {
+func pistolBullet(t *assets.Template) *assets.Item {
 	x, y := 192, 128
 	width, height := 64, 64
-	return assets.NewItem(x, y, width, height, t)
+	return t.NewItem(x, y, width, height)
 }
 
-func loadTemplateFromFile(path string) (assets.Template, error) {
+func loadTemplateFromFile(path string) (*assets.Template, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -148,15 +148,15 @@ func loadTemplateFromFile(path string) (assets.Template, error) {
 		return nil, err
 	}
 
-	return assets.Template(img), nil
+	return assets.NewTemplate(img), nil
 }
 
-func saveTemplateToFile(template assets.Template, path string) error {
+func saveTemplateToFile(template *assets.Template, path string) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	return png.Encode(file, template)
+	return png.Encode(file, template.Image())
 }

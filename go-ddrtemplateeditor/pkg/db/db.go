@@ -97,7 +97,7 @@ func (d *DB) QueryTemplate(id int) (*Template, error) {
 	return &template, nil
 }
 
-func (d *DB) UpdateTemplateImage(id int, image []byte) error {
+func (d *DB) UpdateTemplateImage(id int, image *[]byte) error {
 	err := d.db.Model(&Template{}).Where("id = ?", id).Update("Img", image).Error
 	if err != nil {
 		return err

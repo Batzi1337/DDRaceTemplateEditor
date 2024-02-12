@@ -1,51 +1,66 @@
 package assets
 
 import (
+	"bytes"
 	"image"
 	"image/draw"
-	"io"
+	"image/png"
+	"log"
 )
 
-type Item image.Image
-
-type Template image.Image
-
-func NewTemplate(r io.Reader) (Template, error) {
-	img, _, err := image.Decode(r)
-	if err != nil {
-		return nil, err
-	}
-
-	return Template(img), nil
+type Item struct {
+	img image.Image
 }
 
-func NewItem(x, y, width, height int, src Template) Item {
+type Template struct {
+	img image.Image
+	bP  *[]byte
+}
+
+func NewTemplate(img image.Image) *Template {
+	t := &Template{img: img}
+	return t
+}
+
+func (t *Template) NewItem(x, y, width, height int) *Item {
 	rect := image.Rect(x, y, x+width, y+height)
 	subImage := image.NewRGBA64(rect)
-	draw.Draw(subImage, subImage.Bounds(), src, image.Point{x, y}, draw.Src)
+	draw.Draw(subImage, subImage.Bounds(), t.img, image.Point{x, y}, draw.Src)
 
-	return subImage
+	return &Item{img: subImage}
 }
 
-func ReplaceItems(template Template, items ...Item) (result Template) {
-	result = template
+func (t *Template) ReplaceItems(items ...*Item) {
 	for _, item := range items {
-		result = replaceItem(result, item)
-	}
+		rect := item.img.Bounds()
+		dstImage := image.NewRGBA(t.img.Bounds())
+		draw.Draw(dstImage, dstImage.Bounds(), t.img, image.Point{}, draw.Src)
 
-	return
-}
-
-func replaceItem(src Template, replacement Item) Template {
-	rect := replacement.Bounds()
-	dstImage := image.NewRGBA(src.Bounds())
-	draw.Draw(dstImage, dstImage.Bounds(), src, image.Point{}, draw.Src)
-
-	for y := rect.Min.Y; y < rect.Max.Y; y++ {
-		for x := rect.Min.X; x < rect.Max.X; x++ {
-			dstImage.Set(x, y, replacement.At(x, y))
+		for y := rect.Min.Y; y < rect.Max.Y; y++ {
+			for x := rect.Min.X; x < rect.Max.X; x++ {
+				dstImage.Set(x, y, item.img.At(x, y))
+			}
 		}
+
+		t.img = dstImage
+	}
+}
+
+func (t *Template) Bytes() *[]byte {
+	if t.bP != nil {
+		return t.bP
 	}
 
-	return dstImage
+	var buffer bytes.Buffer
+	err := png.Encode(&buffer, t.img)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	b := buffer.Bytes()
+	t.bP = &b
+
+	return t.bP
 }
+
+func (t *Template) Image() image.Image { return t.img }

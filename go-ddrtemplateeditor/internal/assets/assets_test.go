@@ -12,21 +12,30 @@ import (
 
 func TestReplaceItems(t *testing.T) {
 	srcImage := getImage("../../samples/templates/purple_haze.png")
-	replacementImage := getImage("../../samples/items/item1.png")
+	dstImage := getImage("../../samples/templates/template1.png")
 
-	src := Template(srcImage)
-	replacement := Item(replacementImage)
+	src := NewTemplate(srcImage)
+	dst := NewTemplate(dstImage)
+	replacement := src.NewItem(64, 32, 128, 96)
 
-	result := ReplaceItems(src, replacement)
+	dst.ReplaceItems(replacement)
 
 	// Verify that the replaced item is present in the result
-	assert.True(t, isItemPresent(result, replacement))
+	assert.True(t, isItemPresent(*src, *replacement))
+
+	file, err := os.Create("test.png")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	png.Encode(file, dst.Image())
 }
 
 func isItemPresent(src Template, item Item) bool {
 	// Convert the images to RGBA for pixel-level comparison
-	srcRGBA := convertToRGBA(src)
-	itemRGBA := convertToRGBA(item)
+	srcRGBA := convertToRGBA(src.Image())
+	itemRGBA := convertToRGBA(item.img)
 
 	// Get the dimensions of the item
 	itemBounds := itemRGBA.Bounds()
