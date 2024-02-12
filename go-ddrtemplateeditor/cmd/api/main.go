@@ -175,38 +175,25 @@ func updateTemplate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load the template images
-	dstT, err := assets.NewTemplate(bytes.NewReader(t1.Img))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	srcT, err := assets.NewTemplate(bytes.NewReader(t2.Img))
-	if err != nil {
-		log.Fatal(err)
-	}
+	dstT := assets.NewTemplate(createImage(t1))
+	srcT := assets.NewTemplate(createImage(t2))
 
 	// Load the items
-	items := []assets.Item{}
+	items := []*assets.Item{}
 	for _, item := range replacement.Items {
 		i, err := dbInstance.QueryItem(item.ID)
 		if err != nil {
 			log.Fatal(err)
 		}
-		item := assets.NewItem(i.X, i.Y, i.Width, i.Height, srcT)
+		item := srcT.NewItem(i.X, i.Y, i.Width, i.Height)
 		items = append(items, item)
 	}
 
 	// Replace the items
-	dstT = assets.ReplaceItems(dstT, items...)
+	dstT.ReplaceItems(items...)
 
 	// Save the new template
-	var buffer bytes.Buffer
-	err = png.Encode(&buffer, dstT)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = dbInstance.UpdateTemplateImage(id, buffer.Bytes())
+	err = dbInstance.UpdateTemplateImage(id, dstT.Bytes())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -222,4 +209,13 @@ func getItems(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(items)
+}
+
+func createImage(t *db.Template) image.Image {
+	img, _, err := image.Decode(bytes.NewReader(t.Img))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return img
 }
