@@ -1,0 +1,20 @@
+# Use an official lightweight Alpine image as a parent image
+FROM alpine:latest
+
+# Install sqlite
+RUN apk add --no-cache sqlite
+
+# Make a directory to host the database file
+RUN mkdir /db
+
+# Set the working directory to /db
+WORKDIR /db
+
+# Copy the local database file to the Docker image
+COPY ddrtemplateeditor.db /db
+
+# Expose port 8080 for the application
+EXPOSE 8080
+
+# Run the command to start SQLite
+CMD ["sqlite3", "/db/ddrtemplateeditor.db"]

@@ -31,6 +31,54 @@ The `-item` parameter defines, which items will be extracted from the source tem
 
 To list all available items, just use `./go-ddrtemplateeditor -h`.
 
+## Build the dockerfile
+
+Build the dockerfile with the following command:
+
+```bash
+docker build -t ddrtemplateeditor .
+```
+
+Now you can run the docker container with the following command:
+
+```bash
+docker run --rm -it -p 1337:1337/tcp ddracetemplateeditor:latest 
+```
+
+The container will start a simple webserver on port 1337. You can access the webserver by opening your browser and navigating to `http://localhost:1337/api/templates`.
+
+## Test with PowerShell
+
+You can test the API with PowerShell. Here is an example:
+
+```powershell
+$uri = "http://localhost:1337/api/templates"
+$response = Invoke-RestMethod -Uri $uri -Method GET 
+$response
+```
+
+To download a template, you can use the following command:
+
+```powershell
+$uri = "http://localhost:1337/api/templates/1/image"
+Invoke-WebRequest -Uri $uri -Method GET -OutFile "template1.png"
+```
+
+To exchange an item from one template to an other, you can use the following command:
+
+```powershell
+$uri = "http://localhost:1337/api/templates/1/replace"
+$body = @{
+    templateId = 2
+    items = @(
+        @{
+            id = 1
+        }
+    )
+} | ConvertTo-Json
+Invoke-RestMethod -Uri $uri -Method PUT -Body $body -ContentType "application/json"
+```
+
 ## Contributing
 
 Contributions are welcome! If you have any ideas, suggestions, or bug reports, please open an issue or submit a pull request.

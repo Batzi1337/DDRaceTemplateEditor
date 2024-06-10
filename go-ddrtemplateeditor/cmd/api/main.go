@@ -23,9 +23,9 @@ type replacementDto struct {
 	} `json:"items"`
 }
 
-var templateFolder = "../../samples/templates"
+var templateFolder = os.Getenv("TEMPLATE_FOLDER_PATH")
 
-var itemsSetFile = "../../samples/items/items.yml"
+var itemsSetFile = os.Getenv("ITEMS_CONFIG_FILE_PATH")
 
 var dbInstance *db.DB
 
