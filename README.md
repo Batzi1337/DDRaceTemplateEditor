@@ -36,7 +36,7 @@ To list all available items, just use `./go-ddrtemplateeditor -h`.
 Build the dockerfile with the following command:
 
 ```bash
-docker build -t ddrtemplateeditor .
+docker build --pull --rm -f "go-ddrtemplateeditor\dockerfile" -t ddracetemplateeditor:latest "go-ddrtemplateeditor"
 ```
 
 Now you can run the docker container with the following command:
